@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <fstream>
+#include <iomanip> 
 
 const size_t NAME_LENGTH = 100;
 const int MIN_BOARD = 4;
@@ -32,35 +33,17 @@ void initializeBoard(int** board, int size) {
     }
 }
 
-void printCell(int value, int width = 5) {
-    int numDigits = 0;
-    int temp = value;
-
-    if (value == 0) {
-        std::cout << "  .  ";
-        return;
-    }
-
-    while (temp != 0) {
-        temp /= 10;
-        numDigits++;
-    }
-
-    int leftPadding = (width - numDigits) / 2;
-    int rightPadding = width - numDigits - leftPadding;
-
-    for (int i = 0; i < leftPadding; i++) std::cout << " ";
-    std::cout << value;
-    for (int i = 0; i < rightPadding; i++) std::cout << " ";
-}
-
-void printBoard(int** board, int size) {
+void printBoard(int** board, int size, int score) {
+	clearTerminal();
+    std::cout << "\n";
     for (int row = 0; row < size; row++) {
         for (int col = 0; col < size; col++) {
-            printCell(board[row][col]);
+            std::cout << std::setw(4) << board[row][col];
         }
         std::cout << "\n\n";
     }
+    std::cout << "\nScore: " << score << "\n\n";
+    std::cout << "Enter a move(w,a,s,d): ";
 }
 
 void newGame() {
@@ -85,9 +68,10 @@ void newGame() {
 	} while (boardSize < MIN_BOARD || boardSize > MAX_BOARD);
 
     int** board = createBoard(boardSize);
+	int score = 0;
 
 	initializeBoard(board, boardSize);
-	printBoard(board, boardSize);
+	printBoard(board, boardSize, score);
 
     destroyBoard(board, boardSize);
 }
