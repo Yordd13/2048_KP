@@ -68,176 +68,6 @@ bool canMove(int board[MAX_BOARD][MAX_BOARD], int size) {
     return false;
 }
 
-bool moveLeft(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
-    bool moved = false;
-
-    for (int row = 0; row < size; row++) {
-        int compact[MAX_BOARD];
-        int compactLen = 0;
-        for (int col = 0; col < size; col++) {
-            if (board[row][col] != 0) {
-                compact[compactLen++] = board[row][col];
-            }
-        }
-
-        int merged[MAX_BOARD] = { 0 };
-        int mlen = 0;
-        int i = 0;
-        while (i < compactLen) {
-            if (i + 1 < compactLen && compact[i] == compact[i + 1]) {
-                int val = compact[i] * 2;
-                merged[mlen++] = val;
-                score += val;
-                i += 2;
-            }
-            else {
-                merged[mlen++] = compact[i];
-                i += 1;
-            }
-        }
-
-        for (int k = mlen; k < size; k++) merged[k] = 0;
-
-        for (int col = 0; col < size; col++) {
-            if (board[row][col] != merged[col]) {
-                moved = true;
-                board[row][col] = merged[col];
-            }
-        }
-    }
-
-    return moved;
-}
-
-bool moveRight(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
-    bool moved = false;
-
-    for (int row = 0; row < size; row++) {
-        int compact[MAX_BOARD];
-        int compactLen = 0;
-        for (int col = size - 1; col >= 0; col--) {
-            if (board[row][col] != 0) {
-                compact[compactLen++] = board[row][col];
-            }
-        }
-
-        int mergedRev[MAX_BOARD] = { 0 };
-        int mlen = 0;
-        int i = 0;
-        while (i < compactLen) {
-            if (i + 1 < compactLen && compact[i] == compact[i + 1]) {
-                int val = compact[i] * 2;
-                mergedRev[mlen++] = val;
-                score += val;
-                i += 2;
-            }
-            else {
-                mergedRev[mlen++] = compact[i];
-                i += 1;
-            }
-        }
-
-        int finalRow[MAX_BOARD] = { 0 };
-        for (int k = 0; k < mlen; k++) {
-            finalRow[size - 1 - k] = mergedRev[k];
-        }
-
-        for (int col = 0; col < size; col++) {
-            if (board[row][col] != finalRow[col]) {
-                moved = true;
-                board[row][col] = finalRow[col];
-            }
-        }
-    }
-
-    return moved;
-}
-
-bool moveUp(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
-    bool moved = false;
-
-    for (int col = 0; col < size; col++) {
-        int compact[MAX_BOARD];
-        int compactLen = 0;
-        for (int row = 0; row < size; row++) {
-            if (board[row][col] != 0) {
-                compact[compactLen++] = board[row][col];
-            }
-        }
-
-        int merged[MAX_BOARD] = { 0 };
-        int mlen = 0;
-        int i = 0;
-        while (i < compactLen) {
-            if (i + 1 < compactLen && compact[i] == compact[i + 1]) {
-                int val = compact[i] * 2;
-                merged[mlen++] = val;
-                score += val;
-                i += 2;
-            }
-            else {
-                merged[mlen++] = compact[i];
-                i += 1;
-            }
-        }
-
-        for (int k = mlen; k < size; k++) merged[k] = 0;
-
-        for (int row = 0; row < size; row++) {
-            if (board[row][col] != merged[row]) {
-                moved = true;
-                board[row][col] = merged[row];
-            }
-        }
-    }
-
-    return moved;
-}
-
-bool moveDown(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
-    bool moved = false;
-
-    for (int col = 0; col < size; col++) {
-        int compact[MAX_BOARD];
-        int compactLen = 0;
-        for (int row = size - 1; row >= 0; row--) {
-            if (board[row][col] != 0) {
-                compact[compactLen++] = board[row][col];
-            }
-        }
-
-        int mergedRev[MAX_BOARD] = { 0 };
-        int mlen = 0;
-        int i = 0;
-        while (i < compactLen) {
-            if (i + 1 < compactLen && compact[i] == compact[i + 1]) {
-                int val = compact[i] * 2;
-                mergedRev[mlen++] = val;
-                score += val;
-                i += 2;
-            }
-            else {
-                mergedRev[mlen++] = compact[i];
-                i += 1;
-            }
-        }
-
-        int finalCol[MAX_BOARD] = { 0 };
-        for (int k = 0; k < mlen; k++) {
-            finalCol[size - 1 - k] = mergedRev[k];
-        }
-
-        for (int row = 0; row < size; row++) {
-            if (board[row][col] != finalCol[row]) {
-                moved = true;
-                board[row][col] = finalCol[row];
-            }
-        }
-    }
-
-    return moved;
-}
-
 bool slideMergeLineLeft(int line[], int size, int& score) {
     int compact[MAX_BOARD];
     int compactLen = 0;
@@ -276,6 +106,87 @@ bool slideMergeLineLeft(int line[], int size, int& score) {
 
     return changed;
 }
+
+bool moveLeft(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+     bool moved = false;
+     int line[MAX_BOARD];
+
+     for (int row = 0; row < size; row++) {
+         for (int col = 0; col < size; col++) {
+             line[col] = board[row][col];
+         }
+
+         if (slideMergeLineLeft(line, size, score)) {
+             moved = true;
+
+             for (int col = 0; col < size; col++) {
+                 board[row][col] = line[col];
+             }
+         }
+     }
+     return moved;
+}
+
+bool moveRight(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+    bool moved = false;
+    int line[MAX_BOARD];
+
+    for (int row = 0; row < size; row++) {
+        for (int col = 0; col < size; col++) {
+            line[col] = board[row][size - 1 - col];
+        }
+
+        if (slideMergeLineLeft(line, size, score)) {
+            moved = true;
+
+            for (int col = 0; col < size; col++) {
+                board[row][size - 1 - col] = line[col];
+            }
+        }
+    }
+    return moved;
+}
+
+bool moveUp(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+    bool moved = false;
+    int line[MAX_BOARD];
+
+    for (int col = 0; col < size; col++) {
+        for (int row = 0; row < size; row++) {
+            line[row] = board[row][col];
+        }
+
+        if (slideMergeLineLeft(line, size, score)) {
+            moved = true;
+
+            for (int row = 0; row < size; row++) {
+                board[row][col] = line[row];
+            }
+        }
+    }
+    return moved;
+}
+
+bool moveDown(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+    bool moved = false;
+    int line[MAX_BOARD];
+
+    for (int col = 0; col < size; col++) {
+        for (int row = 0; row < size; row++) {
+            line[row] = board[size - 1 - row][col];
+        }
+
+        if (slideMergeLineLeft(line, size, score)) {
+            moved = true;
+
+            for (int row = 0; row < size; row++) {
+                board[size - 1 - row][col] = line[row];
+            }
+        }
+    }
+    return moved;
+}
+
 
 bool spawnTile(int board[MAX_BOARD][MAX_BOARD], int size) {
     const int MAX_CELLS = MAX_BOARD * MAX_BOARD;
