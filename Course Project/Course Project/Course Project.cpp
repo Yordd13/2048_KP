@@ -10,22 +10,7 @@ void clearTerminal() {
     system("cls");
 }
 
-int** createBoard(int size) {
-    int** board = new int* [size];
-    for (int i = 0; i < size; i++) {
-        board[i] = new int[size] {0};
-    }
-    return board;
-}
-
-void destroyBoard(int** board, int size) {
-    for (int i = 0; i < size; i++) {
-        delete[] board[i];
-    }
-    delete[] board;
-}
-
-void initializeBoard(int** board, int size) {
+void initializeBoard(int board[MAX_BOARD][MAX_BOARD], int size) {
     for (int row = 0; row < size; row++) {
         for (int col = 0; col < size; col++) {
             board[row][col] = 0;
@@ -33,8 +18,8 @@ void initializeBoard(int** board, int size) {
     }
 }
 
-void printBoard(int** board, int size, int score) {
-	clearTerminal();
+void printBoard(int board[MAX_BOARD][MAX_BOARD], int size, int score) {
+    clearTerminal();
     std::cout << "\n";
     for (int row = 0; row < size; row++) {
         for (int col = 0; col < size; col++) {
@@ -47,7 +32,7 @@ void printBoard(int** board, int size, int score) {
 }
 
 void newGame() {
-	clearTerminal();
+	clearTerminal(); 
 
 	char playerName[NAME_LENGTH];
     std::cout << "Enter your name: ";
@@ -61,19 +46,18 @@ void newGame() {
         std::cin >> boardSize;
 
         if (boardSize < MIN_BOARD || boardSize > MAX_BOARD) {
-			clearTerminal();
+            clearTerminal();
             std::cout << "Invalid input. Board size must be between 4 and 10.\n";
         }
 
-	} while (boardSize < MIN_BOARD || boardSize > MAX_BOARD);
+    } while (boardSize < MIN_BOARD || boardSize > MAX_BOARD);
 
-    int** board = createBoard(boardSize);
-	int score = 0;
+    int board[MAX_BOARD][MAX_BOARD];
 
-	initializeBoard(board, boardSize);
-	printBoard(board, boardSize, score);
+    int score = 0;
 
-    destroyBoard(board, boardSize);
+    initializeBoard(board, boardSize);
+    printBoard(board, boardSize, score);
 }
 
 void startGame() {
