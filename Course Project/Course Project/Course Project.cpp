@@ -21,7 +21,6 @@ void initializeBoard(int board[MAX_BOARD][MAX_BOARD], int size) {
 }
 
 void printBoard(int board[MAX_BOARD][MAX_BOARD], int size, int score) {
-    clearTerminal();
     std::cout << "\n";
     for (int row = 0; row < size; row++) {
         for (int col = 0; col < size; col++) {
@@ -250,6 +249,7 @@ void newGame() {
         std::cout << "Player: " << playerName << "\n";
         printBoard(board, boardSize, score);
 
+		//TODO: check for valid input
         char move;
         std::cin >> move;
 
@@ -272,28 +272,26 @@ void newGame() {
             continue;
         }
 
-        if (moved) {
-            spawnTile(board, boardSize);
+        spawnTile(board, boardSize);
 
-            if (hasWon(board, boardSize)) {
-                clearTerminal();
-                printBoard(board, boardSize, score);
-                std::cout << "\nYou win!\n";
-                std::cout << "Press any key to return to menu...";
-                std::cin.ignore();
-                std::cin.get();
-                return;
-            }
+        if (hasWon(board, boardSize)) {
+            clearTerminal();
+            printBoard(board, boardSize, score);
+            std::cout << "\nYou win!\n";
+            std::cout << "Press any key to return to menu...";
+            std::cin.ignore();
+            std::cin.get();
+            return;
+        }
 
-            if (!canMove(board, boardSize)) {
-                clearTerminal();
-                printBoard(board, boardSize, score);
-                std::cout << "\nGame Over!\n";
-                std::cout << "Press any key to return to menu...";
-                std::cin.ignore();
-                std::cin.get();
-                gameOver = true;
-            }
+        if (!canMove(board, boardSize)) {
+            clearTerminal();
+            printBoard(board, boardSize, score);
+            std::cout << "\nGame Over!\n";
+            std::cout << "Press any key to return to menu...";
+            std::cin.ignore();
+            std::cin.get();
+            gameOver = true;
         }
     }
 }
