@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iomanip> 
 #include <random>
+#include <ctime>
 
 const size_t NAME_LENGTH = 100;
 const int MIN_BOARD = 4;
@@ -67,7 +68,7 @@ bool canMove(int board[MAX_BOARD][MAX_BOARD], int size) {
     return false;
 }
 
-bool slideMergeLineLeft(int line[], int size, int& score) {
+bool slideAndMerge(int line[], int size) {
     int compact[MAX_BOARD];
     int compactLen = 0;
 
@@ -84,7 +85,6 @@ bool slideMergeLineLeft(int line[], int size, int& score) {
         if (i + 1 < compactLen && compact[i] == compact[i + 1]) {
             int val = compact[i] * 2;
             merged[mlen++] = val;
-            score += val;
             i += 2;
         }
         else {
@@ -106,7 +106,7 @@ bool slideMergeLineLeft(int line[], int size, int& score) {
     return changed;
 }
 
-bool moveLeft(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+bool moveLeft(int board[MAX_BOARD][MAX_BOARD], int size) {
      bool moved = false;
      int line[MAX_BOARD];
 
@@ -115,9 +115,8 @@ bool moveLeft(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
              line[col] = board[row][col];
          }
 
-         if (slideMergeLineLeft(line, size, score)) {
+         if (slideAndMerge(line, size)) {
              moved = true;
-
              for (int col = 0; col < size; col++) {
                  board[row][col] = line[col];
              }
@@ -126,7 +125,7 @@ bool moveLeft(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
      return moved;
 }
 
-bool moveRight(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+bool moveRight(int board[MAX_BOARD][MAX_BOARD], int size) {
     bool moved = false;
     int line[MAX_BOARD];
 
@@ -135,9 +134,8 @@ bool moveRight(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
             line[col] = board[row][size - 1 - col];
         }
 
-        if (slideMergeLineLeft(line, size, score)) {
+        if (slideAndMerge(line, size)) {
             moved = true;
-
             for (int col = 0; col < size; col++) {
                 board[row][size - 1 - col] = line[col];
             }
@@ -146,7 +144,7 @@ bool moveRight(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
     return moved;
 }
 
-bool moveUp(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+bool moveUp(int board[MAX_BOARD][MAX_BOARD], int size) {
     bool moved = false;
     int line[MAX_BOARD];
 
@@ -155,9 +153,8 @@ bool moveUp(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
             line[row] = board[row][col];
         }
 
-        if (slideMergeLineLeft(line, size, score)) {
+        if (slideAndMerge(line, size)) {
             moved = true;
-
             for (int row = 0; row < size; row++) {
                 board[row][col] = line[row];
             }
@@ -166,7 +163,7 @@ bool moveUp(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
     return moved;
 }
 
-bool moveDown(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
+bool moveDown(int board[MAX_BOARD][MAX_BOARD], int size) {
     bool moved = false;
     int line[MAX_BOARD];
 
@@ -175,9 +172,8 @@ bool moveDown(int board[MAX_BOARD][MAX_BOARD], int size, int& score) {
             line[row] = board[size - 1 - row][col];
         }
 
-        if (slideMergeLineLeft(line, size, score)) {
+        if (slideAndMerge(line, size)) {
             moved = true;
-
             for (int row = 0; row < size; row++) {
                 board[size - 1 - row][col] = line[row];
             }
@@ -213,6 +209,16 @@ bool spawnTile(int board[MAX_BOARD][MAX_BOARD], int size) {
     return true;
 }
 
+int calculateTotalScore(int board[MAX_BOARD][MAX_BOARD], int size) {
+    int total = 0;
+    for (int row = 0; row < size; row++) {
+        for (int col = 0; col < size; col++) {
+            total += board[row][col];
+        }
+    }
+    return total;
+}
+
 void newGame() {
 	clearTerminal(); 
 
@@ -240,11 +246,13 @@ void newGame() {
 
 
     spawnTile(board, boardSize);
-    spawnTile(board, boardSize);
 
     bool gameOver = false;
 
     while (!gameOver) {
+
+        score = calculateTotalScore(board, boardSize);
+
         clearTerminal();
         std::cout << "Player: " << playerName << "\n";
         printBoard(board, boardSize, score);
@@ -256,42 +264,41 @@ void newGame() {
         bool moved = false;
         switch (move) {
         case 'w':
-            moved = moveUp(board, boardSize, score);
+            moved = moveUp(board, boardSize);
             break;
         case 'a':
-            moved = moveLeft(board, boardSize, score);
+            moved = moveLeft(board, boardSize);
             break;
         case 's':
-            moved = moveDown(board, boardSize, score);
+            moved = moveDown(board, boardSize);
             break;
         case 'd':
-            moved = moveRight(board, boardSize, score);
+            moved = moveRight(board, boardSize);
             break;
         default:
 			//TODO: logic if invalid input
             continue;
         }
 
-        spawnTile(board, boardSize);
 
-        if (hasWon(board, boardSize)) {
-            clearTerminal();
-            printBoard(board, boardSize, score);
-            std::cout << "\nYou win!\n";
-            std::cout << "Press any key to return to menu...";
-            std::cin.ignore();
-            std::cin.get();
-            return;
-        }
+        if (moved) {
+            spawnTile(board, boardSize);
 
-        if (!canMove(board, boardSize)) {
-            clearTerminal();
-            printBoard(board, boardSize, score);
-            std::cout << "\nGame Over!\n";
-            std::cout << "Press any key to return to menu...";
-            std::cin.ignore();
-            std::cin.get();
-            gameOver = true;
+            if (hasWon(board, boardSize)) {
+                clearTerminal();
+                printBoard(board, boardSize, score);
+                std::cout << "\nYou win!\n";
+                //TODO: leaderboard logic and return to menu
+                return;
+            }
+
+            if (!canMove(board, boardSize)) {
+                clearTerminal();
+                printBoard(board, boardSize, score);
+                std::cout << "\nGame Over!\n";
+				//TODO: leaderboard logic and return to menu
+                gameOver = true;
+            }
         }
     }
 }
@@ -325,6 +332,7 @@ void startGame() {
 
 int main()
 {
+    std::srand(static_cast<unsigned int>(std::time(0)));
 
 	startGame();
     
