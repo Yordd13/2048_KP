@@ -5,6 +5,7 @@
 #include <ctime>
 
 const size_t NAME_LENGTH = 100;
+const size_t FILE_NAME_LENGTH = 20;
 const int MIN_BOARD = 4;
 const int MAX_BOARD = 10;
 const int WIN_TILE = 2048;
@@ -30,6 +31,8 @@ void printBoard(int board[MAX_BOARD][MAX_BOARD], int size, int score) {
         std::cout << "\n\n";
     }
     std::cout << "\nScore: " << score << "\n\n";
+
+	//TODO: if game is over, don't print this
     std::cout << "Enter a move(w,a,s,d): ";
 }
 
@@ -219,6 +222,110 @@ int calculateTotalScore(int board[MAX_BOARD][MAX_BOARD], int size) {
     return total;
 }
 
+int myStrlen(const char* str) {
+    int len = 0;
+    while (str[len] != '\0') {
+        len++;
+    }
+    return len;
+}
+
+void myStrcpy(char* dest, const char* src) {
+    int i = 0;
+    while (src[i] != '\0') {
+        dest[i] = src[i];
+        i++;
+    }
+    dest[i] = '\0';
+}
+
+void myStrcat(char* dest, const char* src) {
+    int destLen = myStrlen(dest);
+    int i = 0;
+    while (src[i] != '\0') {
+        dest[destLen + i] = src[i];
+        i++;
+    }
+    dest[destLen + i] = '\0';
+}
+
+void myIntToString(int num, char* out) {
+    int i = 0;
+    if (num >= 10) {
+        out[i++] = (num / 10) + '0';
+        out[i++] = (num % 10) + '0';
+    }
+    else {
+        out[i++] = num + '0';
+    }
+    out[i] = '\0';
+}
+
+void getFilename(int size, char* filename) {
+
+    char sizeStr[3];
+    if (size >= 10) {
+        sizeStr[0] = (size / 10) + '0';
+        sizeStr[1] = (size % 10) + '0';
+        sizeStr[2] = '\0';
+    }
+    else {
+        sizeStr[0] = size + '0';
+        sizeStr[1] = '\0';
+    }
+
+    myStrcpy(filename, "leaderboard_");
+    myStrcat(filename, sizeStr);
+    myStrcat(filename, "x");
+    myStrcat(filename, sizeStr);
+    myStrcat(filename, ".txt");
+}
+
+void updateLeaderboard(int boardSize, const char* playerName, int finalScore) {
+    char filename[FILE_NAME_LENGTH];
+    getFilename(boardSize, filename);
+
+    char names[6][NAME_LENGTH];
+    int scores[6];
+    int count = 0;
+
+    std::ifstream inFile(filename);
+    if (inFile.is_open()) {
+        while (count < 5 && inFile >> names[count] >> scores[count]) {
+            count++;
+        }
+        inFile.close();
+    }
+
+    myStrcpy(names[count], playerName);
+    scores[count] = finalScore;
+    count++;
+
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = 0; j < count - i - 1; j++) {
+            if (scores[j] < scores[j + 1]) {
+                int tempScore = scores[j];
+                scores[j] = scores[j + 1];
+                scores[j + 1] = tempScore;
+
+                char tempName[NAME_LENGTH];
+                myStrcpy(tempName, names[j]);
+                myStrcpy(names[j], names[j + 1]);
+                myStrcpy(names[j + 1], tempName);
+            }
+        }
+    }
+
+    std::ofstream outFile(filename);
+    if (outFile.is_open()) {
+        int limit = (count > 5) ? 5 : count;
+        for (int i = 0; i < limit; i++) {
+            outFile << names[i] << " " << scores[i] << "\n";
+        }
+        outFile.close();
+    }
+}
+
 void newGame() {
 	clearTerminal(); 
 
@@ -301,6 +408,8 @@ void newGame() {
             }
         }
     }
+
+    updateLeaderboard(boardSize, playerName, score);
 }
 
 void startGame() {
@@ -317,11 +426,18 @@ void startGame() {
             newGame();
             break;
         case 2:
-            //showLeaderboard();
+            int size;
+            std::cout << "Enter board size to view (4-10): ";
+            std::cin >> size;
+            if (size >= MIN_BOARD && size <= MAX_BOARD) {
+                //showLeaderboard(size);
+            }
+            else {
+                std::cout << "Invalid size.\n";
+            }
             break;
         case 3:
-            //exitGame();
-            break;
+            return;
         default:
             clearTerminal();
             std::cout << "Invalid input. Try again.\n";
