@@ -413,7 +413,7 @@ void newGame() {
 }
 
 void startGame() {
-    int choice;
+    char choice;
 
     do {
         std::cout << "1. Start Game\n";
@@ -422,10 +422,10 @@ void startGame() {
         std::cin >> choice;
 
         switch (choice) {
-        case 1:
+        case '1':
             newGame();
             break;
-        case 2:
+        case '2':
             int size;
             std::cout << "Enter board size to view (4-10): ";
             std::cin >> size;
@@ -436,7 +436,7 @@ void startGame() {
                 std::cout << "Invalid size.\n";
             }
             break;
-        case 3:
+        case '3':
             return;
         default:
             clearTerminal();
