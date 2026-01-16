@@ -326,6 +326,31 @@ void updateLeaderboard(int boardSize, const char* playerName, int finalScore) {
     }
 }
 
+void showLeaderboard(int size) {
+    char filename[50];
+    getFilename(size, filename);
+
+    std::ifstream inFile(filename);
+    clearTerminal();
+
+    std::cout << "--- TOP 5 LEADERBOARD (" << size << "x" << size << ") ---\n";
+    std::cout << std::setw(5) << "Pos" << std::setw(20) << "Name" << std::setw(10) << "Score" << "\n";
+    std::cout << "-------------------------------------------\n";
+
+    if (!inFile.is_open()) {
+        std::cout << "No records yet for this size.\n";
+    }
+    else {
+        char name[NAME_LENGTH];
+        int score;
+        int pos = 1;
+        while (inFile >> name >> score) {
+            std::cout << std::setw(5) << pos++ << std::setw(20) << name << std::setw(10) << score << "\n";
+        }
+        inFile.close();
+    }
+}
+
 void newGame() {
 	clearTerminal(); 
 
@@ -392,10 +417,12 @@ void newGame() {
             spawnTile(board, boardSize);
 
             if (hasWon(board, boardSize)) {
+				score = calculateTotalScore(board, boardSize);
+                updateLeaderboard(boardSize, playerName, score);
+
                 clearTerminal();
                 printBoard(board, boardSize, score);
                 std::cout << "\nYou win!\n";
-                //TODO: leaderboard logic and return to menu
                 return;
             }
 
@@ -416,6 +443,7 @@ void startGame() {
     char choice;
 
     do {
+		clearTerminal();
         std::cout << "1. Start Game\n";
         std::cout << "2. Leaderboard\n";
         std::cout << "3. Exit\n";
@@ -430,7 +458,7 @@ void startGame() {
             std::cout << "Enter board size to view (4-10): ";
             std::cin >> size;
             if (size >= MIN_BOARD && size <= MAX_BOARD) {
-                //showLeaderboard(size);
+                showLeaderboard(size);
             }
             else {
                 std::cout << "Invalid size.\n";
