@@ -1,4 +1,17 @@
-﻿#include <iostream>
+﻿
+/**
+*
+* Solution to course project # 8
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2025/2026
+*
+* @author Yordan Dimitrov
+* @idnumber 9MI0600598
+*
+*/
+
+#include <iostream>
 #include <fstream>
 #include <iomanip> 
 #include <random>
@@ -54,7 +67,6 @@ bool hasWon(int board[MAX_BOARD][MAX_BOARD], int size) {
 }
 
 bool canMove(int board[MAX_BOARD][MAX_BOARD], int size) {
-
 	//empty cell check
     for (int row = 0; row < size; row++) {
         for (int col = 0; col < size; col++) {
