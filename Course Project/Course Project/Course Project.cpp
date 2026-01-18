@@ -194,7 +194,7 @@ bool moveDown(int board[MAX_BOARD][MAX_BOARD], int size) {
 }
 
 
-bool spawnTile(int board[MAX_BOARD][MAX_BOARD], int size) {
+bool addRandomTile(int board[MAX_BOARD][MAX_BOARD], int size) {
     const int MAX_CELLS = MAX_BOARD * MAX_BOARD;
     int emptyR[MAX_CELLS];
     int emptyC[MAX_CELLS];
@@ -329,8 +329,8 @@ void updateLeaderboard(int boardSize, const char* playerName, int finalScore) {
 
     std::ofstream outFile(filename);
     if (outFile.is_open()) {
-        int leaderboardPlayers = (count > 5) ? 5 : count;
-        for (int i = 0; i < leaderboardPlayers; i++) {
+        int leaderboardPlayersCount = (count > 5) ? 5 : count;
+        for (int i = 0; i < leaderboardPlayersCount; i++) {
             outFile << names[i] << "\n" << scores[i] << "\n";
         }
         outFile.close();
@@ -401,7 +401,7 @@ void newGame() {
     initializeBoard(board, boardSize);
 
 
-    spawnTile(board, boardSize);
+    addRandomTile(board, boardSize);
 
     bool gameOver = false;
 
@@ -438,7 +438,7 @@ void newGame() {
 
 
         if (moved) {
-            spawnTile(board, boardSize);
+            addRandomTile(board, boardSize);
 
             if (hasWon(board, boardSize)) {
 				score = calculateTotalScore(board, boardSize);
@@ -466,20 +466,26 @@ void newGame() {
 }
 
 void startGame() {
-    char choice;
+    int choice;
 
     do {
 		clearTerminal();
         std::cout << "1. Start Game\n";
         std::cout << "2. Leaderboard\n";
         std::cout << "3. Exit\n";
-        std::cin >> choice;
+
+        if (!(std::cin >> choice)) {
+            std::cin.clear();
+            std::cout << "Invalid input. Please enter a number.\n";
+            pauseTerminal();
+            continue;
+        }
 
         switch (choice) {
-        case '1':
+        case 1:
             newGame();
             break;
-        case '2':
+        case 2:
             clearTerminal();
 
             int size;
@@ -500,14 +506,14 @@ void startGame() {
                 pauseTerminal();
             }
             break;
-        case '3':
+        case 3:
             return;
         default:
             std::cout << "Invalid input. Try again.\n";
             pauseTerminal();
         }
 
-    } while (choice != '3');
+    } while (true);
 }
 
 int main()
