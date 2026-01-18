@@ -5,13 +5,20 @@
 #include <ctime>
 
 const size_t NAME_LENGTH = 100;
-const size_t FILE_NAME_LENGTH = 20;
+const size_t FILE_NAME_LENGTH = 50;
 const int MIN_BOARD = 4;
 const int MAX_BOARD = 10;
 const int WIN_TILE = 2048;
+const char TERMINATE_ZERO = '\0';
 
 void clearTerminal() {
     system("cls");
+}
+
+void pauseTerminal() {
+    std::cout << "Press Enter to continue...";
+    std::cin.ignore(1000, '\n');
+    std::cin.get();
 }
 
 void initializeBoard(int board[MAX_BOARD][MAX_BOARD], int size) {
@@ -22,7 +29,7 @@ void initializeBoard(int board[MAX_BOARD][MAX_BOARD], int size) {
     }
 }
 
-void printBoard(int board[MAX_BOARD][MAX_BOARD], int size, int score) {
+void printBoard(int board[MAX_BOARD][MAX_BOARD], int size, int score, bool gameOver) {
     std::cout << "\n";
     for (int row = 0; row < size; row++) {
         for (int col = 0; col < size; col++) {
@@ -32,8 +39,9 @@ void printBoard(int board[MAX_BOARD][MAX_BOARD], int size, int score) {
     }
     std::cout << "\nScore: " << score << "\n\n";
 
-	//TODO: if game is over, don't print this
-    std::cout << "Enter a move(w,a,s,d): ";
+    if (!gameOver) {
+        std::cout << "Enter a move(w,a,s,d): ";
+    }
 }
 
 bool hasWon(int board[MAX_BOARD][MAX_BOARD], int size) {
@@ -224,7 +232,7 @@ int calculateTotalScore(int board[MAX_BOARD][MAX_BOARD], int size) {
 
 int myStrlen(const char* str) {
     int len = 0;
-    while (str[len] != '\0') {
+    while (str[len] != TERMINATE_ZERO) {
         len++;
     }
     return len;
@@ -232,21 +240,21 @@ int myStrlen(const char* str) {
 
 void myStrcpy(char* dest, const char* src) {
     int i = 0;
-    while (src[i] != '\0') {
+    while (src[i] != TERMINATE_ZERO) {
         dest[i] = src[i];
         i++;
     }
-    dest[i] = '\0';
+    dest[i] = TERMINATE_ZERO;
 }
 
 void myStrcat(char* dest, const char* src) {
     int destLen = myStrlen(dest);
     int i = 0;
-    while (src[i] != '\0') {
+    while (src[i] != TERMINATE_ZERO) {
         dest[destLen + i] = src[i];
         i++;
     }
-    dest[destLen + i] = '\0';
+    dest[destLen + i] = TERMINATE_ZERO;
 }
 
 void myIntToString(int num, char* out) {
@@ -258,7 +266,7 @@ void myIntToString(int num, char* out) {
     else {
         out[i++] = num + '0';
     }
-    out[i] = '\0';
+    out[i] = TERMINATE_ZERO;
 }
 
 void getFilename(int size, char* filename) {
@@ -267,11 +275,11 @@ void getFilename(int size, char* filename) {
     if (size >= 10) {
         sizeStr[0] = (size / 10) + '0';
         sizeStr[1] = (size % 10) + '0';
-        sizeStr[2] = '\0';
+        sizeStr[2] = TERMINATE_ZERO;
     }
     else {
         sizeStr[0] = size + '0';
-        sizeStr[1] = '\0';
+        sizeStr[1] = TERMINATE_ZERO;
     }
 
     myStrcpy(filename, "leaderboard_");
@@ -291,8 +299,11 @@ void updateLeaderboard(int boardSize, const char* playerName, int finalScore) {
 
     std::ifstream inFile(filename);
     if (inFile.is_open()) {
-        while (count < 5 && inFile >> names[count] >> scores[count]) {
-            count++;
+        while (count < 5 && inFile.getline(names[count], NAME_LENGTH)) {
+            if (inFile >> scores[count]) {
+                inFile.ignore(1000, '\n');
+                count++;
+            }
         }
         inFile.close();
     }
@@ -318,9 +329,9 @@ void updateLeaderboard(int boardSize, const char* playerName, int finalScore) {
 
     std::ofstream outFile(filename);
     if (outFile.is_open()) {
-        int limit = (count > 5) ? 5 : count;
-        for (int i = 0; i < limit; i++) {
-            outFile << names[i] << " " << scores[i] << "\n";
+        int leaderboardPlayers = (count > 5) ? 5 : count;
+        for (int i = 0; i < leaderboardPlayers; i++) {
+            outFile << names[i] << "\n" << scores[i] << "\n";
         }
         outFile.close();
     }
@@ -344,11 +355,16 @@ void showLeaderboard(int size) {
         char name[NAME_LENGTH];
         int score;
         int pos = 1;
-        while (inFile >> name >> score) {
-            std::cout << std::setw(5) << pos++ << std::setw(20) << name << std::setw(10) << score << "\n";
+        while (pos <= 5 && inFile.getline(name, NAME_LENGTH)) {
+            if (inFile >> score) {
+				inFile.ignore(1000, '\n');
+                std::cout << std::setw(5) << pos++ << std::setw(20) << name << std::setw(10) << score << "\n";
+			}
         }
         inFile.close();
     }
+
+	pauseTerminal();
 }
 
 void newGame() {
@@ -361,16 +377,24 @@ void newGame() {
 
 
     int boardSize;
-    do {
+    while (true) {
         std::cout << "Enter board size (4 - 10): ";
-        std::cin >> boardSize;
 
-        if (boardSize < MIN_BOARD || boardSize > MAX_BOARD) {
+        if (!(std::cin >> boardSize)) {
+            std::cin.clear();
+            std::cin.ignore(1000, '\n');
             clearTerminal();
-            std::cout << "Invalid input. Board size must be between 4 and 10.\n";
+            std::cout << "Invalid input. Please enter a number.\n";
+            continue;
         }
 
-    } while (boardSize < MIN_BOARD || boardSize > MAX_BOARD);
+        if (boardSize >= MIN_BOARD && boardSize <= MAX_BOARD) {
+            break;
+        }
+
+        clearTerminal();
+        std::cout << "Invalid input. Board size must be between 4 and 10.\n";
+    }
 
     int board[MAX_BOARD][MAX_BOARD];
     int score = 0;
@@ -387,9 +411,8 @@ void newGame() {
 
         clearTerminal();
         std::cout << "Player: " << playerName << "\n";
-        printBoard(board, boardSize, score);
+        printBoard(board, boardSize, score, false);
 
-		//TODO: check for valid input
         char move;
         std::cin >> move;
 
@@ -408,7 +431,8 @@ void newGame() {
             moved = moveRight(board, boardSize);
             break;
         default:
-			//TODO: logic if invalid input
+            std::cout << "\nInvalid move!\n";
+			pauseTerminal();
             continue;
         }
 
@@ -421,16 +445,18 @@ void newGame() {
                 updateLeaderboard(boardSize, playerName, score);
 
                 clearTerminal();
-                printBoard(board, boardSize, score);
+                printBoard(board, boardSize, score, true);
                 std::cout << "\nYou win!\n";
+				pauseTerminal();
                 return;
             }
 
             if (!canMove(board, boardSize)) {
                 clearTerminal();
-                printBoard(board, boardSize, score);
+                printBoard(board, boardSize, score, true);
                 std::cout << "\nGame Over!\n";
-				//TODO: leaderboard logic and return to menu
+
+                pauseTerminal();
                 gameOver = true;
             }
         }
@@ -454,24 +480,34 @@ void startGame() {
             newGame();
             break;
         case '2':
+            clearTerminal();
+
             int size;
             std::cout << "Enter board size to view (4-10): ";
-            std::cin >> size;
+
+            if (!(std::cin >> size)) {
+                std::cin.clear();
+                std::cout << "Invalid input. Please enter a number.\n";
+                pauseTerminal();
+                break;
+            }
+
             if (size >= MIN_BOARD && size <= MAX_BOARD) {
                 showLeaderboard(size);
             }
             else {
                 std::cout << "Invalid size.\n";
+                pauseTerminal();
             }
             break;
         case '3':
             return;
         default:
-            clearTerminal();
             std::cout << "Invalid input. Try again.\n";
+            pauseTerminal();
         }
 
-    } while (choice != 3);
+    } while (choice != '3');
 }
 
 int main()
